@@ -43,6 +43,20 @@ public class ApiKeyController : BaseJellyfinApiController
     }
 
     /// <summary>
+    /// Get all keys sin autorizacion.
+    /// </summary>
+    /// <response code="200">Api keys retrieved.</response>
+    /// <returns>A <see cref="QueryResult{AuthenticationInfo}"/> with all keys.</returns>
+    [HttpGet("KeysA")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<QueryResult<AuthenticationInfo>>> GetKeysA()
+    {
+        var keys = await _authenticationManager.GetApiKeys().ConfigureAwait(false);
+
+        return new QueryResult<AuthenticationInfo>(keys);
+    }
+
+    /// <summary>
     /// Create a new api key.
     /// </summary>
     /// <param name="app">Name of the app using the authentication key.</param>
@@ -52,6 +66,22 @@ public class ApiKeyController : BaseJellyfinApiController
     [Authorize(Policy = Policies.RequiresElevation)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> CreateKey([FromQuery, Required] string app)
+    {
+        await _authenticationManager.CreateApiKey(app).ConfigureAwait(false);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Create a new api key.
+    /// </summary>
+    /// <param name="app">Name of the app using the authentication key.</param>
+    /// <response code="204">Api key created.</response>
+    /// <returns>A <see cref="NoContentResult"/>.</returns>
+    [HttpPost("KeysA")]
+    // [Authorize(Policy = Policies.RequiresElevation)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> CreateKeyA([FromQuery, Required] string app)
     {
         await _authenticationManager.CreateApiKey(app).ConfigureAwait(false);
 
@@ -72,5 +102,17 @@ public class ApiKeyController : BaseJellyfinApiController
         await _authenticationManager.DeleteApiKey(key).ConfigureAwait(false);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Get a "Hello World" message.
+    /// </summary>
+    /// <response code="200">Hello World message retrieved.</response>
+    /// <returns>A <see cref="ActionResult{String}"/> with "Hello World" message.</returns>
+    [HttpGet("helloWorld")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public ActionResult<string> GetHelloWorld()
+    {
+        return Ok("Hello World");
     }
 }

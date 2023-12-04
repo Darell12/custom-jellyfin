@@ -4,7 +4,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
+using System.Text.RegularExpressions;
 using Emby.Dlna.Extensions;
+using HarfBuzzSharp;
 using Jellyfin.Api.Middleware;
 using Jellyfin.MediaEncoding.Hls.Extensions;
 using Jellyfin.Networking.HappyEyeballs;
@@ -21,6 +23,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -137,9 +140,15 @@ namespace Jellyfin.Server
             IConfiguration appConfig)
         {
             app.UseBaseUrlRedirection();
-
+            app.UseMiddleware<JwtMiddleware>();
             // Wrap rest of configuration so everything only listens on BaseUrl.
             var config = _serverConfigurationManager.GetNetworkConfiguration();
+
+            // app.MapWhen(context => Regex.IsMatch(context.Request.Path + context.Request.QueryString, "^/api/.*"), configuration =>
+            // {
+            //     configuration.UseMiddleware<JwtMiddleware>();
+            // });
+
             app.Map(config.BaseUrl, mainApp =>
             {
                 if (env.IsDevelopment())
@@ -148,6 +157,7 @@ namespace Jellyfin.Server
                 }
 
                 mainApp.UseForwardedHeaders();
+
                 mainApp.UseMiddleware<ExceptionMiddleware>();
 
                 mainApp.UseMiddleware<ResponseTimeMiddleware>();
